@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>바이브코딩 첫걸음 — 아이디어를 프롬프트로</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --paper:#F7F8F4; --ink:#1B2130; --ink-2:#4B5568; --line:#D9DDD3;
+    --blue:#2456C9; --blue-soft:#E4EBFB; --green:#1E7A55; --green-soft:#E1F2EA;
+    --amber:#9A6B0A; --amber-soft:#F9EFD6; --white:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--paper)}
+  body{margin:0;font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:var(--ink);line-height:1.6;font-size:16px}
+  main{max-width:720px;margin:0 auto;padding:40px 20px 96px}
+  h1{font-size:clamp(30px,6vw,44px);font-weight:800;line-height:1.15;letter-spacing:-.02em;margin:0 0 12px}
+  .lede{color:var(--ink-2);margin:0 0 36px;font-size:17px;max-width:38em}
+  h2{font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .step{margin:0 0 48px;padding-top:28px;border-top:2px solid var(--ink)}
+  .step .num{display:inline-block;font-weight:800;color:var(--blue);margin-right:8px}
+  .hint{color:var(--ink-2);font-size:15px;margin:0 0 18px}
+  label{display:block;font-weight:600;margin:16px 0 6px}
+  label small{font-weight:400;color:var(--ink-2);margin-left:6px}
+  input[type=text],input[type=password],textarea,select{
+    width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink)}
+  textarea{min-height:110px;resize:vertical;line-height:1.55}
+  input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid var(--blue-soft);border-color:var(--blue);outline-offset:0}
+  button{font:inherit;font-size:16px;font-weight:700;padding:13px 20px;border-radius:10px;border:1.5px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+  button.secondary{background:var(--white);color:var(--ink)}
+  button.small{font-size:14px;padding:8px 12px;font-weight:600}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .status{font-size:15px;color:var(--ink-2);min-height:1.5em;margin-top:10px}
+  .status.err{color:#A32424}
+  /* settings */
+  details.settings{border:1.5px solid var(--line);border-radius:12px;background:var(--white);padding:0 16px;margin-bottom:40px}
+  details.settings summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details.settings summary::-webkit-details-marker{display:none}
+  details.settings summary .badge{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--amber-soft);color:var(--amber)}
+  details.settings summary .badge.ok{background:var(--green-soft);color:var(--green)}
+  details.settings .body{padding:4px 0 18px;border-top:1px solid var(--line)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){.two{grid-template-columns:1fr}}
+  .note{font-size:14px;color:var(--ink-2);margin-top:10px}
+  .note a{color:var(--blue)}
+  /* features */
+  .tier{margin-top:22px}
+  .tier h3{font-size:15px;font-weight:700;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .tier h3 .dot{width:10px;height:10px;border-radius:50%}
+  .t-must .dot{background:var(--blue)} .t-nice .dot{background:var(--green)} .t-later .dot{background:var(--amber)}
+  .feat{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--white);margin-bottom:8px}
+  .feat input{margin-top:5px;width:18px;height:18px;accent-color:var(--blue);flex:none}
+  .feat .name{font-weight:600}
+  .feat .desc{font-size:14px;color:var(--ink-2)}
+  .feat .del{margin-left:auto;background:none;border:none;color:var(--ink-2);font-size:18px;padding:0 4px;line-height:1}
+  .addrow{display:flex;gap:8px;margin-top:10px}
+  .addrow input{flex:1}
+  .summary{background:var(--blue-soft);border-radius:10px;padding:14px 16px;margin-bottom:6px}
+  .summary b{display:block;margin-bottom:2px}
+  /* prompt */
+  .prompt-wrap{position:relative}
+  #prompt{min-height:380px;font-size:15px;line-height:1.6;background:#fff;padding:18px}
+  .copybar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}
+  .copybar .spacer{flex:1}
+  .open-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .open-links a{font-size:15px;font-weight:600;color:var(--ink);text-decoration:none;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px}
+  .open-links a:hover{border-color:var(--ink)}
+  .guide{background:var(--white);border:1.5px solid var(--line);border-radius:12px;padding:6px 18px 18px;margin-top:28px}
+  .guide ol{padding-left:20px;margin:8px 0 0}
+  .guide li{margin:8px 0}
+  .guide code{background:var(--paper);padding:2px 6px;border-radius:6px;font-size:14px}
+  .hidden{display:none}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>만들고 싶은 게 있으세요?<br>말로 적으면, 프롬프트로 바꿔 드려요.</h1>
+  <p class="lede">코딩을 몰라도 괜찮아요. 아이디어를 몇 줄 적으면 필요한 기능을 골라 주고, Gemini·ChatGPT·Claude 어디에 붙여 넣어도 바로 앱이 나오는 프롬프트를 만들어 줍니다.</p>
+
+  <details class="settings" id="settings">
+    <summary><span>AI 연결 설정</span><span class="badge" id="keyBadge">API 키 없음</span></summary>
+    <div class="body">
+      <div class="two">
+        <div>
+          <label for="provider">어떤 AI를 쓸까요</label>
+          <select id="provider">
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI (ChatGPT)</option>
+          </select>
+        </div>
+        <div>
+          <label for="model">모델 이름<small>필요하면 바꾸세요</small></label>
+          <input type="text" id="model" value="gemini-2.5-flash">
+        </div>
+      </div>
+      <label for="apikey">API 키</label>
+      <input type="password" id="apikey" placeholder="AIza... 또는 sk-..." autocomplete="off">
+      <p class="note">키는 이 브라우저 창 안에서만 쓰이고 어디에도 저장되지 않아요. 새로고침하면 다시 입력해야 합니다.
+        키 발급: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Gemini (무료)</a> · <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI</a>.
+        키가 없어도 2단계에서 기능을 직접 적어 3단계로 갈 수 있어요.</p>
+    </div>
+  </details>
+
+  <!-- STEP 1 -->
+  <section class="step" id="step1">
+    <h2><span class="num">1</span>무엇을 만들고 싶은지 적어 주세요</h2>
+    <p class="hint">완벽하게 쓰지 않아도 돼요. 친구에게 설명하듯 편하게.</p>
+    <label for="idea">만들고 싶은 것</label>
+    <textarea id="idea" placeholder="예) 우리 반 아이들이 매일 아침 기분을 체크하고, 한 달 치를 그래프로 볼 수 있는 웹페이지"></textarea>
+    <label for="users">누가 쓰나요<small>선택</small></label>
+    <input type="text" id="users" placeholder="예) 초등학교 4학년 학생 25명과 담임교사">
+    <label for="must">꼭 들어갔으면 하는 것<small>선택</small></label>
+    <input type="text" id="must" placeholder="예) 로그인 없이, 태블릿에서, 귀여운 캐릭터로">
+    <div class="row">
+      <button id="btnRecommend">기능 추천 받기</button>
+      <button class="secondary" id="btnSkip">추천 없이 직접 고르기</button>
+    </div>
+    <div class="status" id="status1"></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step hidden" id="step2">
+    <h2><span class="num">2</span>들어갈 기능을 고르세요</h2>
+    <p class="hint">처음 만들 때는 '꼭 필요한 것'만 켜 두는 게 성공 확률이 높아요. 나머지는 나중에 추가하면 됩니다.</p>
+    <div class="summary hidden" id="summaryBox"></div>
+    <div id="featureLists"></div>
+    <div class="addrow">
+      <input type="text" id="newFeat" placeholder="빠진 기능이 있으면 직접 추가">
+      <button class="secondary small" id="btnAdd">추가</button>
+    </div>
+    <div class="two" style="margin-top:20px">
+      <div>
+        <label for="format">결과물 형태</label>
+        <select id="format">
+          <option value="single">HTML 파일 하나 (가장 쉬움, 더블클릭으로 실행)</option>
+          <option value="web">웹앱 (HTML + CSS + JS 여러 파일)</option>
+          <option value="gas">구글 시트 + Apps Script 연동</option>
+          <option value="python">파이썬 프로그램</option>
+        </select>
+      </div>
+      <div>
+        <label for="tone">디자인 느낌<small>선택</small></label>
+        <input type="text" id="tone" placeholder="예) 밝고 귀엽게, 깔끔한 사무용">
+      </div>
+    </div>
+    <div class="row">
+      <button id="btnBuild">프롬프트 만들기</button>
+      <button class="secondary" id="btnBack1">1단계로</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step hidden" id="step3">
+    <h2><span class="num">3</span>완성된 프롬프트</h2>
+    <p class="hint">그대로 복사해서 붙여 넣으면 돼요. 마음에 안 드는 부분은 여기서 바로 고쳐도 됩니다.</p>
+    <div class="copybar">
+      <button id="btnCopy">프롬프트 복사</button>
+      <button class="secondary" id="btnRefine">AI로 더 다듬기</button>
+      <span class="spacer"></span>
+      <button class="secondary small" id="btnBack2">기능 다시 고르기</button>
+    </div>
+    <div class="status" id="status3"></div>
+    <textarea id="prompt"></textarea>
+    <div class="open-links">
+      <a href="https://gemini.google.com/app" target="_blank" rel="noopener">Gemini 열기</a>
+      <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT 열기</a>
+      <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude 열기</a>
+    </div>
+
+    <div class="guide">
+      <h3>이제 이렇게 하세요</h3>
+      <ol>
+        <li>위 링크 중 하나를 열고, 복사한 프롬프트를 <b>통째로</b> 붙여 넣습니다.</li>
+        <li>AI가 질문을 하면 짧게 답하고, 코드가 나오면 <b>"코드 전체를 파일 하나로 다시 보여 줘"</b>라고 요청하세요.</li>
+        <li>코드를 복사해 메모장에 붙여 넣고 <code>내앱.html</code>로 저장한 뒤 더블클릭하면 브라우저에서 열립니다.</li>
+        <li>고치고 싶으면 그 대화창에서 이어서 말하면 됩니다. 예) <i>"버튼을 더 크게 해 줘"</i>, <i>"저장 버튼을 누르면 확인 메시지가 뜨게 해 줘"</i>, <i>"오류가 나: (오류 메시지 붙여넣기)"</i></li>
+        <li>한 번에 하나씩만 바꿔 달라고 하면 꼬이지 않아요.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast">복사했어요</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const state = { features: [], summary: null };
+  const DEFAULT_MODEL = { gemini:'gemini-2.5-flash', openai:'gpt-4o-mini' };
+  const FORMAT_TEXT = {
+    single:'HTML 파일 하나에 HTML·CSS·JavaScript를 모두 넣어 주세요. 외부 서버나 설치 없이, 파일을 더블클릭하면 브라우저에서 바로 실행되어야 합니다. 데이터 저장이 필요하면 브라우저의 localStorage를 사용합니다.',
+    web:'HTML, CSS, JavaScript 파일로 나눈 웹앱으로 만들어 주세요. 별도 서버 없이 정적 호스팅(예: GitHub Pages)에 올릴 수 있어야 합니다.',
+    gas:'프론트엔드는 HTML 파일 하나, 데이터 저장은 구글 스프레드시트 + Google Apps Script(웹앱 배포)로 연결해 주세요. Apps Script 코드와 배포 방법도 함께 안내해 주세요.',
+    python:'파이썬 프로그램으로 만들어 주세요. 표준 라이브러리 위주로, 꼭 필요한 패키지는 설치 명령을 함께 알려 주세요.'
+  };
+
+  // ---------- settings ----------
+  $('provider').addEventListener('change', e => { $('model').value = DEFAULT_MODEL[e.target.value]; });
+  $('apikey').addEventListener('input', updateBadge);
+  function updateBadge(){
+    const ok = $('apikey').value.trim().length > 10;
+    $('keyBadge').textContent = ok ? '연결 준비됨' : 'API 키 없음';
+    $('keyBadge').classList.toggle('ok', ok);
+  }
+
+  async function callAI(prompt, wantJSON){
+    const key = $('apikey').value.trim();
+    const provider = $('provider').value;
+    const model = $('model').value.trim() || DEFAULT_MODEL[provider];
+    if(!key) throw new Error('API 키를 먼저 입력하세요. (위의 "AI 연결 설정")');
+    let text;
+    if(provider === 'gemini'){
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[{text:prompt}]}],
+          generationConfig: wantJSON ? {responseMimeType:'application/json'} : {} })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || `Gemini 오류 (${res.status})`);
+      text = data.candidates?.[0]?.content?.parts?.map(p=>p.text).join('') || '';
+    } else {
+      const body = { model, messages:[{role:'user', content:prompt}] };
+      if(wantJSON) body.response_format = {type:'json_object'};
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || `OpenAI 오류 (${res.status})`);
+      text = data.choices?.[0]?.message?.content || '';
+    }
+    if(!text) throw new Error('AI가 빈 응답을 보냈어요. 다시 시도해 보세요.');
+    return text;
+  }
+
+  // ---------- step 1 ----------
+  function readIdea(){
+    return { idea:$('idea').value.trim(), users:$('users').value.trim(), must:$('must').value.trim() };
+  }
+  $('btnRecommend').addEventListener('click', async () => {
+    const {idea, users, must} = readIdea();
+    if(!idea){ setStatus('status1','만들고 싶은 것을 먼저 적어 주세요.', true); return; }
+    setStatus('status1','AI가 기능을 정리하고 있어요…');
+    $('btnRecommend').disabled = true;
+    const p = `당신은 코딩을 전혀 모르는 사람이 AI로 첫 앱을 만들도록 돕는 친절한 기획자입니다.
+아래 아이디어를 읽고, 초보자가 첫 시도에서 성공할 수 있도록 기능을 정리해 주세요.
+
+[만들고 싶은 것] ${idea}
+[사용자] ${users || '(적지 않음)'}
+[꼭 넣고 싶은 것] ${must || '(적지 않음)'}
+
+규칙:
+- 기능은 6~10개. 각 기능은 사용자 입장에서 쉬운 말로, 이름은 12자 이내.
+- tier는 "must"(없으면 앱이 성립하지 않는 것, 3~5개), "nice"(있으면 좋은 것), "later"(처음엔 빼는 게 나은 것) 중 하나.
+- 로그인, 결제, 서버 DB 같은 어려운 기능은 되도록 "later"로.
+- screens는 화면 이름을 2~4개, 짧게.
+아래 JSON 형식으로만 답하세요. 다른 말은 쓰지 마세요.
+{"title":"앱 이름 제안","summary":"한 문장으로 이 앱을 설명","screens":["화면1","화면2"],"features":[{"name":"기능 이름","desc":"한 문장 설명","tier":"must"}]}`;
+    try{
+      const raw = await callAI(p, true);
+      const obj = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      state.summary = { title:obj.title||'', summary:obj.summary||'', screens:obj.screens||[] };
+      state.features = (obj.features||[]).map((f,i)=>({ id:'f'+i, name:f.name, desc:f.desc||'', tier:['must','nice','later'].includes(f.tier)?f.tier:'nice', on:f.tier==='must' }));
+      setStatus('status1','');
+      showStep2();
+    }catch(err){
+      setStatus('status1', err.message, true);
+    }finally{ $('btnRecommend').disabled = false; }
+  });
+  $('btnSkip').addEventListener('click', () => {
+    const {idea} = readIdea();
+    if(!idea){ setStatus('status1','만들고 싶은 것을 먼저 적어 주세요.', true); return; }
+    state.summary = null;
+    if(!state.features.length) state.features = [];
+    setStatus('status1','');
+    showStep2();
+  });
+
+  // ---------- step 2 ----------
+  function showStep2(){
+    $('step2').classList.remove('hidden');
+    $('step3').classList.add('hidden');
+    renderFeatures();
+    $('step2').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function renderFeatures(){
+    const box = $('summaryBox');
+    if(state.summary){
+      box.classList.remove('hidden');
+      box.innerHTML = `<b>${esc(state.summary.title)}</b>${esc(state.summary.summary)}${state.summary.screens.length?`<div class="note" style="margin-top:6px">화면: ${state.summary.screens.map(esc).join(', ')}</div>`:''}`;
+    } else box.classList.add('hidden');
+
+    const tiers = [['must','꼭 필요한 것','t-must'],['nice','있으면 좋은 것','t-nice'],['later','나중에 넣을 것','t-later']];
+    const wrap = $('featureLists'); wrap.innerHTML = '';
+    if(!state.features.length){
+      wrap.innerHTML = '<p class="note">아직 기능이 없어요. 아래 칸에 하나씩 적어 추가해 주세요. 예) "기분을 5단계로 고르기", "한 달 그래프 보기"</p>';
+      return;
+    }
+    tiers.forEach(([key,label,cls]) => {
+      const list = state.features.filter(f=>f.tier===key);
+      if(!list.length) return;
+      const sec = document.createElement('div'); sec.className = 'tier '+cls;
+      sec.innerHTML = `<h3><span class="dot"></span>${label}</h3>`;
+      list.forEach(f => {
+        const row = document.createElement('label'); row.className='feat';
+        row.innerHTML = `<input type="checkbox" ${f.on?'checked':''}><div><div class="name">${esc(f.name)}</div>${f.desc?`<div class="desc">${esc(f.desc)}</div>`:''}</div><button class="del" title="삭제" aria-label="삭제">×</button>`;
+        row.querySelector('input').addEventListener('change', e => { f.on = e.target.checked; });
+        row.querySelector('.del').addEventListener('click', e => { e.preventDefault(); state.features = state.features.filter(x=>x!==f); renderFeatures(); });
+        sec.appendChild(row);
+      });
+      wrap.appendChild(sec);
+    });
+  }
+  $('btnAdd').addEventListener('click', addFeat);
+  $('newFeat').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); addFeat(); } });
+  function addFeat(){
+    const v = $('newFeat').value.trim(); if(!v) return;
+    state.features.push({ id:'u'+Date.now(), name:v, desc:'', tier:'must', on:true });
+    $('newFeat').value=''; renderFeatures();
+  }
+  $('btnBack1').addEventListener('click', () => { $('step2').classList.add('hidden'); $('step1').scrollIntoView({behavior:'smooth'}); });
+
+  // ---------- step 3 ----------
+  $('btnBuild').addEventListener('click', () => {
+    const on = state.features.filter(f=>f.on);
+    if(!on.length){ alert('기능을 하나 이상 켜 주세요.'); return; }
+    $('prompt').value = buildPrompt(on);
+    $('step3').classList.remove('hidden');
+    setStatus('status3','');
+    $('step3').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  function buildPrompt(on){
+    const {idea, users, must} = readIdea();
+    const fmt = $('format').value;
+    const tone = $('tone').value.trim();
+    const later = state.features.filter(f=>!f.on && f.tier!=='later');
+    const s = state.summary;
+    const lines = [];
+    lines.push('당신은 초보자를 돕는 친절한 시니어 개발자입니다. 저는 코딩을 잘 모르니, 결과물은 제가 그대로 복사해서 쓸 수 있게 완성된 형태로 주세요.');
+    lines.push('');
+    lines.push('## 만들고 싶은 것');
+    lines.push(s?.summary ? `${s.title ? s.title+' — ' : ''}${s.summary}` : idea);
+    if(s?.summary) lines.push(`(원래 설명: ${idea})`);
+    if(users) lines.push(`사용자: ${users}`);
+    if(must) lines.push(`꼭 반영할 점: ${must}`);
+    lines.push('');
+    lines.push('## 꼭 들어가야 하는 기능');
+    on.forEach((f,i)=> lines.push(`${i+1}. ${f.name}${f.desc?` — ${f.desc}`:''}`));
+    if(s?.screens?.length){ lines.push(''); lines.push('## 화면 구성'); lines.push(s.screens.map((x,i)=>`${i+1}) ${x}`).join('  ')); }
+    if(later.length){ lines.push(''); lines.push('## 이번에는 넣지 않는 것 (나중에 추가 예정, 지금은 만들지 마세요)'); later.forEach(f=> lines.push(`- ${f.name}`)); }
+    lines.push('');
+    lines.push('## 기술 조건');
+    lines.push(FORMAT_TEXT[fmt]);
+    lines.push('한국어 UI로, 스마트폰과 PC 모두에서 보기 좋게 반응형으로 만들어 주세요.');
+    if(tone) lines.push(`디자인 느낌: ${tone}`);
+    lines.push('');
+    lines.push('## 진행 방식');
+    lines.push('1. 시작하기 전에, 만드는 데 꼭 필요한데 제가 빠뜨린 정보가 있으면 질문을 최대 3개까지만 해 주세요. 없으면 바로 만들어 주세요.');
+    lines.push('2. 코드는 생략 없이 전체를 한 번에 주세요. "...생략..." 같은 표현은 쓰지 마세요.');
+    lines.push('3. 코드 다음에, 이 파일을 어떻게 저장하고 실행하는지 초보자 기준으로 3줄 이내로 설명해 주세요.');
+    lines.push('4. 제가 수정을 요청하면, 바뀐 부분만이 아니라 전체 코드를 다시 보여 주세요.');
+    return lines.join('\n');
+  }
+  $('btnRefine').addEventListener('click', async () => {
+    const cur = $('prompt').value.trim(); if(!cur) return;
+    setStatus('status3','AI가 프롬프트를 다듬고 있어요…');
+    $('btnRefine').disabled = true;
+    try{
+      const out = await callAI(`아래는 코딩 초보자가 생성형 AI에게 앱 제작을 요청하려고 쓴 프롬프트입니다.
+빠지거나 모호한 요구사항을 구체적으로 보완하되, 원래 구조(## 제목들)와 한국어를 유지하고, 초보자가 이해 못 할 전문용어는 쓰지 마세요.
+설명 없이 완성된 프롬프트 본문만 출력하세요.
+
+---
+${cur}`, false);
+      $('prompt').value = out.replace(/^```[a-z]*\n?|```$/g,'').trim();
+      setStatus('status3','다듬었어요. 마음에 안 들면 직접 고치세요.');
+    }catch(err){ setStatus('status3', err.message, true); }
+    finally{ $('btnRefine').disabled = false; }
+  });
+  $('btnCopy').addEventListener('click', async () => {
+    const t = $('prompt').value;
+    try{ await navigator.clipboard.writeText(t); }
+    catch(e){ $('prompt').select(); document.execCommand('copy'); }
+    const toast = $('toast'); toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 1600);
+  });
+  $('btnBack2').addEventListener('click', () => { $('step3').classList.add('hidden'); $('step2').scrollIntoView({behavior:'smooth'}); });
+
+  // ---------- utils ----------
+  function setStatus(id, msg, err){ const el=$(id); el.textContent=msg; el.classList.toggle('err', !!err); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+})();
+</script>
+</body>
+</html>
