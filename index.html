@@ -113,8 +113,9 @@
           </select>
         </div>
         <div>
-          <label for="model">모델 이름<small>필요하면 바꾸세요</small></label>
-          <input type="text" id="model" value="gemini-2.5-flash">
+          <label for="modelSel">모델<small>기본값 그대로 두면 돼요</small></label>
+          <select id="modelSel"></select>
+          <input type="text" id="model" class="hidden" placeholder="모델 이름 직접 입력 (예: gemini-3.8-flash)" style="margin-top:8px">
         </div>
       </div>
       <label for="apikey">API 키</label>
@@ -227,7 +228,33 @@
 (function(){
   const $ = id => document.getElementById(id);
   const state = { features: [], summary: null, questions: [] };
-  const DEFAULT_MODEL = { gemini:'gemini-2.5-flash', openai:'gpt-4o-mini' };
+  // 모델 목록 (2026-09 기준). 새 모델이 나오면 여기만 고치면 됩니다.
+  const MODELS = {
+    gemini: [
+      { id:'gemini-3.8-flash',      label:'Gemini 3.8 Flash — 추천 (무료 티어 가능)' },
+      { id:'gemini-3.5-flash-lite', label:'Gemini 3.5 Flash-Lite — 더 빠르고 저렴' },
+      { id:'gemini-3.1-pro-preview',label:'Gemini 3.1 Pro — 더 똑똑함 (유료)' },
+      { id:'gemini-flash-latest',   label:'gemini-flash-latest — 항상 최신 Flash 자동' }
+    ],
+    openai: [
+      { id:'gpt-5.6-luna',  label:'GPT-5.6 Luna — 추천 (저렴)' },
+      { id:'gpt-5.6-terra', label:'GPT-5.6 Terra — 균형형' },
+      { id:'gpt-5.6-sol',   label:'GPT-5.6 Sol — 최상위 (비쌈)' }
+    ]
+  };
+  const DEFAULT_MODEL = { gemini: MODELS.gemini[0].id, openai: MODELS.openai[0].id };
+  function fillModels(provider){
+    const sel = $('modelSel'); sel.innerHTML = '';
+    MODELS[provider].forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; sel.appendChild(o); });
+    const custom = document.createElement('option'); custom.value = '__custom'; custom.textContent = '직접 입력…'; sel.appendChild(custom);
+    sel.value = DEFAULT_MODEL[provider];
+    $('model').value = DEFAULT_MODEL[provider];
+    $('model').classList.add('hidden');
+  }
+  function currentModel(){
+    const sel = $('modelSel').value;
+    return sel === '__custom' ? $('model').value.trim() : sel;
+  }
 
   const EXAMPLES = [
     { label:'우리 반 기분 체크', idea:'우리 반 아이들이 매일 아침 오늘 기분을 5단계 이모지로 고르고, 한 달 치를 달력이나 그래프로 볼 수 있는 웹페이지', users:'초등학교 4학년 학생 25명과 담임교사', must:'로그인 없이, 태블릿에서, 밝고 귀여운 느낌으로' },
@@ -286,7 +313,13 @@
   });
 
   // ---------- settings ----------
-  $('provider').addEventListener('change', e => { $('model').value = DEFAULT_MODEL[e.target.value]; });
+  $('provider').addEventListener('change', e => fillModels(e.target.value));
+  $('modelSel').addEventListener('change', e => {
+    const custom = e.target.value === '__custom';
+    $('model').classList.toggle('hidden', !custom);
+    if(custom){ $('model').value = ''; $('model').focus(); }
+  });
+  fillModels($('provider').value);
   $('apikey').addEventListener('input', updateBadge);
   function updateBadge(){
     const ok = $('apikey').value.trim().length > 10;
@@ -297,7 +330,7 @@
   async function callAI(prompt, wantJSON){
     const key = $('apikey').value.trim();
     const provider = $('provider').value;
-    const model = $('model').value.trim() || DEFAULT_MODEL[provider];
+    const model = currentModel() || DEFAULT_MODEL[provider];
     if(!key) throw new Error('API 키를 먼저 입력하세요. (위의 "AI 연결 설정") 키가 없으면 "추천 없이 직접 고르기"로 진행할 수 있어요.');
     let text;
     if(provider === 'gemini'){
@@ -324,7 +357,7 @@
   }
   function friendlyError(msg, status){
     if(status===400 || status===401 || status===403) return 'API 키가 틀렸거나 권한이 없어요. 키를 다시 확인해 주세요.';
-    if(status===404) return '모델 이름을 찾을 수 없어요. "AI 연결 설정"에서 모델 이름을 확인해 주세요.';
+    if(status===404) return '그 모델을 찾을 수 없어요. "AI 연결 설정"에서 다른 모델을 골라 보세요. (Gemini 2.x 등 옛 모델은 종료됐을 수 있어요)';
     if(status===429) return '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.';
     return msg || `오류 (${status})`;
   }
