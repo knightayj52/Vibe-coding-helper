@@ -101,13 +101,15 @@
   .feat{margin:0 0 8px}.feat .feature-label{display:flex;gap:12px;align-items:flex-start;flex:1;margin:0;font-weight:400}.feat .del{min-height:36px;min-width:36px}
   dialog{border:1px solid var(--line);border-radius:14px;padding:24px;max-width:580px;width:calc(100% - 32px);color:var(--ink);box-shadow:0 12px 48px #0003}dialog::backdrop{background:#17203088}dialog textarea{min-height:220px}
   #refinedPrompt{min-height:320px}#btnBuild:disabled{cursor:not-allowed}button,a{touch-action:manipulation}main,section,.two>div{min-width:0}.addrow input{min-width:0}.summary,.desc,.followup p{overflow-wrap:anywhere}
+  .copyhero{padding:20px;background:var(--blue-soft);border:1px solid #B7C8EF;border-radius:14px;margin:18px 0}.copyhero button{width:100%;background:var(--blue);border-color:var(--blue);font-size:19px;min-height:56px}.copyhero p{margin:10px 0 0;font-size:14px;color:var(--ink-2)}#htmlSource{min-height:180px;font-family:monospace;font-size:14px}.lede+.summary{margin-bottom:24px}select:disabled{opacity:1;color:var(--ink-2);background:var(--paper)}
   @media(max-width:400px){.draftbar{align-items:flex-start}.progress span{font-size:13px}.copybar button{padding:10px 12px;font-size:14px}}
 </style>
 </head>
 <body>
 <main>
-  <h1>만들고 싶은 게 있으세요?<br>말로 적으면, 프롬프트로 바꿔 드려요.</h1>
-  <p class="lede">코딩을 몰라도 괜찮아요. 아이디어를 몇 줄 적으면 필요한 기능을 골라 주고, Gemini·ChatGPT·Claude에 붙여 넣을 제작 요청을 만들어 줍니다. API 키 없이 무료로 시작하세요.</p>
+  <h1>나의 첫 앱,<br>파일로 만들어 함께 써 봐요.</h1>
+  <p class="lede">아이디어를 적고 → 제작 요청을 복사해 AI에 붙여 넣고 → 완성된 HTML 파일을 전달하세요. 받은 분도 PC 브라우저에서 열어 체험할 수 있어요. 첫 실습에는 GitHub 가입이나 API 키가 필요하지 않습니다.</p>
+  <div class="summary"><b>이번 목표는 ‘파일 하나로 공유하기’</b>파일을 받은 사람은 내려받아 Chrome·Edge·Safari 등으로 열어요. 기록은 각자의 브라우저에 따로 남으며, 파일을 보낸다고 내 기록까지 함께 전달되지는 않아요. 휴대폰·태블릿에서는 앱과 기기에 따라 HTML 실행이 제한될 수 있어 첫 체험은 PC를 권해요.</div>
 
   <div class="draftbar"><span id="draftStatus" role="status">작성 내용은 이 브라우저에 자동 저장돼요. API 키는 저장하지 않아요.</span><button id="btnReset" class="secondary small" type="button">새로 시작</button></div>
   <nav class="progress" aria-label="진행 단계"><span aria-current="step">1 아이디어</span><span>2 기능 선택</span><span>3 제작 요청</span></nav>
@@ -124,12 +126,16 @@
     <input type="text" id="users" placeholder="예) 초등학교 4학년 학생 25명과 담임교사">
     <label for="must">꼭 들어갔으면 하는 것<small>선택</small></label>
     <input type="text" id="must" placeholder="예) 로그인 없이, 태블릿에서, 귀여운 캐릭터로">
+    <label for="deliveryMode">어떻게 시작할까요?</label>
+    <select id="deliveryMode"><option value="file">첫 실습: HTML 파일 하나로 만들고 전달하기 (추천)</option><option value="advanced">확장 실습: 공동 저장·다른 제작 방식 설정하기</option></select>
+    <div id="advancedSetup" class="hidden">
     <div class="two">
       <div><label for="devices">어디에서 쓰나요?</label><select id="devices"><option value="one">내 기기 하나</option><option value="many">여러 사람의 기기</option></select></div>
       <div><label for="dataScope">기록을 함께 봐야 하나요?</label><select id="dataScope"><option value="local">각 기기에 따로 저장</option><option value="shared">한곳에 모아 함께 보기</option></select></div>
     </div>
     <label for="access">공동 저장할 때 누가 수정하나요?</label>
     <select id="access"><option value="owner">작성자는 자기 기록만, 관리자는 전체</option><option value="admin">관리자만 수정, 다른 사람은 보기</option><option value="everyone">참여자 모두 수정</option></select>
+    </div>
     <p class="note" id="storageHint" role="status"></p>
     <div class="row"><button id="btnSkip">무료로 시작하기</button></div>
     <p class="note">선택한 종류의 기본 기능을 제안해 드려요. 다음 단계에서 바꿀 수 있습니다.</p>
@@ -179,7 +185,7 @@
     </div>
     <div class="two" style="margin-top:20px">
       <div>
-        <label for="format">결과물 형태</label>
+        <label for="format">결과물 형태<small id="firstFormatHint">첫 실습은 HTML 파일 하나로 진행해요</small></label>
         <select id="format">
           <option value="single">HTML 파일 하나 (가장 쉬움)</option>
           <option value="web">웹앱 (파일 여러 개)</option>
@@ -203,10 +209,10 @@
 
   <!-- STEP 3 -->
   <section class="step hidden" id="step3">
-    <h2><span class="num">3</span>완성된 프롬프트</h2>
-    <p class="hint">그대로 복사해서 붙여 넣으면 돼요. 마음에 안 드는 부분은 여기서 바로 고쳐도 됩니다.</p>
+    <h2><span class="num">3</span>복사해서 AI에게 앱 만들기 요청하기</h2>
+    <p class="hint">아래 버튼으로 제작 요청 전체를 복사한 뒤 Gemini·ChatGPT·Claude 중 하나에 붙여 넣으세요. 이 도우미는 제작 요청을 만들고, 실제 앱은 선택한 AI에서 만듭니다.</p>
+    <div class="copyhero"><button id="btnCopy" type="button">제작 프롬프트 전체 복사</button><p id="copyFeedback" role="status" aria-live="polite">복사한 뒤 아래의 AI 열기 버튼을 누르세요.</p></div>
     <div class="copybar">
-      <button id="btnCopy">프롬프트 복사</button>
       <button class="secondary" id="btnRefine">AI로 더 다듬기</button>
       <button class="secondary small" id="btnDownload">.txt로 저장</button>
       <span class="spacer"></span>
@@ -214,7 +220,7 @@
     </div>
     <div class="status" id="status3" role="status"></div>
     <label for="prompt" class="note">제작 요청 내용 (직접 수정할 수 있어요)</label><textarea id="prompt"></textarea>
-    <div class="row"><button id="btnUndo" class="secondary small" disabled>이전 프롬프트로 되돌리기</button><button id="btnCancelRefine" class="secondary small hidden">AI 요청 취소</button></div>
+    <div class="row"><button id="btnCopyBottom" class="secondary" type="button">프롬프트 전체 복사</button><button id="btnUndo" class="secondary small" disabled>이전 프롬프트로 되돌리기</button><button id="btnCancelRefine" class="secondary small hidden">AI 요청 취소</button></div>
     <div id="refinePreview" class="panel hidden"><h3>다듬은 내용 미리 보기</h3><p class="note">위 원문과 비교한 뒤 적용하세요. 적용 후에도 되돌릴 수 있어요.</p><label for="refinedPrompt">AI가 제안한 프롬프트</label><textarea id="refinedPrompt" readonly></textarea><div class="row"><button id="btnApplyRefine">이 내용 적용</button><button id="btnDiscardRefine" class="secondary">적용하지 않기</button></div></div>
     <div class="open-links">
       <a href="https://gemini.google.com/app" target="_blank" rel="noopener">Gemini 열기</a>
@@ -225,6 +231,17 @@
     <div class="panel">
       <h3>이제 이렇게 하세요</h3>
       <ol id="runGuide"></ol>
+    </div>
+
+    <div id="htmlFilePanel" class="panel hidden">
+      <h3>AI가 코드만 줬나요? HTML 파일로 내려받으세요</h3>
+      <p class="note">AI가 파일을 제공했다면 바로 내려받으면 돼요. 코드만 나왔다면 HTML 전체를 아래에 붙여 넣으세요. 프롬프트가 아닌, AI가 만든 앱 코드를 넣는 곳입니다. 입력한 코드는 여기에서 실행하거나 자동 저장하지 않습니다.</p>
+      <label for="htmlSource">AI가 만든 HTML 전체 코드</label><textarea id="htmlSource" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt;부터 &lt;/html&gt;까지 붙여 넣으세요."></textarea>
+      <label for="htmlFilename">파일 이름</label><input id="htmlFilename" type="text" value="my-first-app.html">
+      <div class="row"><button id="btnSaveHtml" type="button">앱 HTML 파일 내려받기</button></div><p id="htmlStatus" class="status" role="status"></p>
+      <h3>만든 파일을 함께 써 보기</h3>
+      <ol><li>내려받은 파일을 PC 브라우저로 열어 버튼과 기능을 확인하세요.</li><li>이메일·메신저의 파일 첨부 또는 공유 폴더로 <b>.html 파일 자체</b>를 전달하세요. 내 컴퓨터의 file:// 주소는 다른 사람에게 보내도 열리지 않아요.</li><li>받은 분은 미리보기 대신 파일을 내려받아 PC 브라우저로 열어요. 첨부나 실행이 제한되면 학교에서 허용하는 공유 방법을 사용하세요.</li><li>다른 사람의 PC에서도 동작하면 첫 공유 성공! 기록은 서로 자동으로 모이지 않아요.</li></ol>
+      <details class="settings"><summary>나중에: 파일 대신 인터넷 주소로 공유하고 싶다면</summary><div class="body"><p class="note">웹 호스팅에 올리면 파일 다운로드 없이 주소로 접속할 수 있어요. GitHub Pages 등의 배포는 첫 실습 이후에 선택해서 진행하세요. 주소 공유와 기록 동기화는 별개입니다.</p></div></details>
     </div>
 
     <div class="panel">
@@ -248,7 +265,7 @@
 </main>
 <dialog id="changeDialog" aria-labelledby="changeTitle"><h2 id="changeTitle">아이디어가 바뀌었어요</h2><p>이전에 고른 기능을 유지할까요? 새 기능을 받으면 현재 아이디어에 맞춰 다시 시작합니다.</p><form method="dialog" class="row"><button value="reset">새 기능 받기</button><button value="keep" class="secondary">기존 기능 유지</button><button value="cancel" class="secondary small">취소</button></form></dialog>
 <dialog id="copyDialog" aria-labelledby="copyTitle"><h2 id="copyTitle">직접 복사해 주세요</h2><p>자동 복사가 차단되었어요. 아래 내용을 선택해 복사해 주세요.</p><label for="manualCopy">복사할 내용</label><textarea id="manualCopy" readonly></textarea><form method="dialog" class="row"><button>닫기</button></form></dialog>
-<footer>v2.0 · © 2026 영쌤클래스 · 교육용으로 제작 · 무단 복제·재배포 금지</footer>
+<footer>v2.1 · © 2026 영쌤클래스 · 교육용으로 제작 · 무단 복제·재배포 금지</footer>
 <div class="toast" id="toast" role="status">복사했어요</div>
 
 <script>
@@ -291,13 +308,13 @@ const state = {features:[], summary:null, questions:[], signature:''};
   ];
   const QUICK = ['입력한 내용 저장하기','목록으로 보기','수정·삭제하기','검색하기','정렬하기','그래프로 보기','인쇄하기','결과 텍스트로 복사','다크 모드','효과음·애니메이션'];
   const FORMAT_TEXT = {
-    single:'HTML 파일 하나에 HTML·CSS·JavaScript를 모두 넣어 주세요. 외부 서버나 설치 없이, 파일을 더블클릭하면 브라우저에서 바로 실행되어야 합니다. 데이터 저장이 필요하면 브라우저의 localStorage를 사용합니다.',
+    single:'HTML 파일 하나에 HTML·CSS·JavaScript를 모두 넣어 주세요. 파일을 다른 사람에게 전달하면 받은 사람도 PC 브라우저에서 열어 사용할 수 있어야 합니다. 서버 실행, npm 설치, 빌드, 로그인, API 키가 필요하지 않게 만들어 주세요. CSS·스크립트·이미지는 파일 안에 포함하고 외부 CDN, 외부 폰트, 별도 파일 fetch, 모듈 import에 의존하지 마세요. 아이콘과 그림은 인라인 SVG·CSS·이모지 등으로 표현하세요. 저장이 필요하면 localStorage를 사용하되 저장 차단·용량 초과 오류를 처리하고, 저장할 수 없어도 현재 실행 중에는 앱을 체험할 수 있게 안내해 주세요. 파일 공유는 기록 동기화가 아니며 기록은 각 브라우저에 따로 남는다고 화면에 설명해 주세요.',
     web:'HTML, CSS, JavaScript 파일로 나눈 웹앱으로 만들어 주세요. 별도 백엔드 없이 정적 호스팅(예: GitHub Pages)에 올릴 수 있어야 합니다. 파일별 이름과 폴더 구조, 실행 방법을 함께 주세요.',
     gas:'프론트엔드는 HTML 파일 하나, 데이터 저장은 구글 스프레드시트 + Google Apps Script(웹앱 배포)로 연결해 주세요. Apps Script 코드와 배포 방법도 함께 안내해 주세요.',
     python:'파이썬 프로그램으로 만들어 주세요. 표준 라이브러리 위주로, 꼭 필요한 패키지는 설치 명령을 함께 알려 주세요.'
   };
   const FORMAT_NOTE = {
-    single:'설치 없이 시작하기 좋아요. 인터넷에 올려 공유할 수도 있지만 기록은 각 브라우저에 따로 남아요.',
+    single:'완성된 .html 파일을 전달하면 받은 분도 PC 브라우저에서 열어 체험해요. 첫 실습에는 GitHub가 필요 없고, 기록은 각 브라우저에 따로 남아요.',
     web:'파일이 여러 개라 관리가 조금 번거롭지만, 인터넷에 올려 남과 공유하기 좋아요.',
     gas:'여러 사람이 입력한 데이터를 한곳(구글 시트)에 모을 때. 배포 과정이 한 단계 더 있어요.',
     python:'화면보다 계산·파일 처리가 중심일 때. 파이썬 설치가 필요해요.'
@@ -356,8 +373,8 @@ const state = {features:[], summary:null, questions:[], signature:''};
     ]
   };
   const ACCESS = {owner:'작성자는 자신의 기록만 조회·수정하고 관리자는 전체 기록을 조회·관리합니다.', admin:'일반 사용자는 공개된 내용을 보기만 하고 관리자만 수정합니다.', everyone:'허용된 참여자들이 공동 기록을 조회·수정합니다.'};
-  const FIELD_IDS = ['idea','users','must','appType','devices','dataScope','access','format','tone','debugAction','debugExpected','debugActual'];
-  const IDEA_IDS = ['idea','users','must','appType','devices','dataScope','access'];
+  const FIELD_IDS = ['idea','users','must','appType','deliveryMode','devices','dataScope','access','format','tone','debugAction','debugExpected','debugActual'];
+  const IDEA_IDS = ['idea','users','must','appType','deliveryMode','devices','dataScope','access'];
   const DRAFT_KEY = 'vibe-coding-helper:draft:v2';
   let stage = 1, activeRequest = null, requestSeq = 0, saveTimer, toastTimer;
   let promptUndo = '', built = null, checks = {}, refinedBase = '';
@@ -380,9 +397,11 @@ const state = {features:[], summary:null, questions:[], signature:''};
     scheduleSave();
   }
   function updateStorage(){
+    const fileMode=$('deliveryMode').value==='file';
+    $('advancedSetup').classList.toggle('hidden',fileMode);$('format').disabled=fileMode;$('firstFormatHint').classList.toggle('hidden',!fileMode);
     const shared=$('dataScope').value==='shared';$('access').disabled=!shared;
     $('storageHint').textContent=shared?'여러 기기의 기록을 한곳에 모으려면 공동 저장소와 접근 권한 설정이 필요해요. 학급 기록은 학생별 열람 범위도 정해 주세요.':
-      '기록은 각 기기의 브라우저 안에 따로 남아요. 같은 주소를 열어도 다른 기기와 자동으로 모이거나 동기화되지 않습니다.';
+      '파일을 전달해 함께 체험할 수 있어요. 기록은 각 기기의 브라우저에 따로 남고 다른 사람에게 자동으로 모이거나 동기화되지 않습니다.';
     updateFormat();
   }
   function formatConflict(){return $('dataScope').value==='shared'&&$('format').value!=='gas';}
@@ -435,7 +454,8 @@ const state = {features:[], summary:null, questions:[], signature:''};
     const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=ex.label;
     b.addEventListener('click',()=>{
       $('idea').value=ex.idea;$('users').value=ex.users;$('must').value=ex.must;$('appType').value=['mood','menu','reading','settle'][i];
-      $('devices').value=i<2?'many':'one';$('dataScope').value=i<2?'shared':'local';$('access').value=i===1?'admin':'owner';$('format').value=i<2?'gas':'single';
+      const fileMode=$('deliveryMode').value==='file';
+      $('devices').value=fileMode?'many':i<2?'many':'one';$('dataScope').value=!fileMode&&i<2?'shared':'local';$('access').value=i===1?'admin':'owner';$('format').value=!fileMode&&i<2?'gas':'single';
       updateStorage();invalidate(1);setStatus('status1','예시를 채웠어요. 내용을 바꾸거나 무료로 시작하기를 눌러 주세요.');$('idea').focus();
     });$('exampleChips').appendChild(b);
   });
@@ -450,6 +470,7 @@ const state = {features:[], summary:null, questions:[], signature:''};
   $('btnAdd').addEventListener('click',()=>addFeature($('newFeat').value));
   $('newFeat').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();addFeature($('newFeat').value);}});
   IDEA_IDS.forEach(id=>$(id).addEventListener('input',()=>{updateStorage();invalidate(1);}));
+  $('deliveryMode').addEventListener('change',()=>{if($('deliveryMode').value==='file'){$('format').value='single';$('dataScope').value='local';$('devices').value='many';}updateStorage();invalidate(1);});
   ['format','tone'].forEach(id=>$(id).addEventListener('input',()=>{updateFormat();invalidate();}));
   $('btnUseShared').addEventListener('click',()=>{$('format').value='gas';updateFormat();invalidate();});
   $('btnUseLocal').addEventListener('click',()=>{$('dataScope').value='local';state.summary=null;state.questions=[];renderFeatures();renderQA();updateStorage();state.signature=signature();invalidate();});
@@ -458,12 +479,12 @@ const state = {features:[], summary:null, questions:[], signature:''};
 
   function buildPrompt(on){
     const {idea,users,must}=readIdea(),fmt=$('format').value,shared=$('dataScope').value==='shared',s=state.summary;
-    const L=['당신은 초보자를 돕는 친절한 시니어 개발자입니다. 제가 저장하고 실행할 수 있는 완성된 결과물을 주세요.','','## 만들고 싶은 것',idea];
+    const L=['당신은 초보자를 돕는 친절한 시니어 개발자입니다. 제가 저장하고 실행할 수 있는 완성된 결과물을 주세요.','아래 아이디어는 배경 설명입니다. 최종 기능 범위는 선택한 기능과 제외한 기능을 우선하고, 해결할 수 없는 충돌만 질문하세요.','','## 만들고 싶은 것',idea];
     if(s?.summary)L.push('기획 참고: '+s.summary);if(users)L.push('사용자: '+users);if(must)L.push('꼭 반영할 점: '+must);
     const answered=state.questions.filter(q=>q.a.trim());if(answered.length)L.push('','## 추가 정보',...answered.map(q=>'- '+q.q+' → '+q.a));
     L.push('','## 꼭 들어가야 하는 기능',...on.map((f,i)=>`${i+1}. ${f.name}${f.desc?' — '+f.desc:''}`));
     const off=state.features.filter(f=>!f.on);if(off.length)L.push('','## 이번에는 넣지 않는 것',...off.map(f=>'- '+f.name));
-    L.push('','## 사용 환경과 데이터', $('devices').value==='many'?'여러 사람의 기기에서 사용합니다.':'내 기기 하나에서 사용합니다.');
+    L.push('','## 사용 환경과 데이터', fmt==='single'?'완성된 HTML 파일을 다른 사람에게 보내 각자의 PC 브라우저에서 실행하고 체험합니다.':$('devices').value==='many'?'여러 사람의 기기에서 사용합니다.':'내 기기 하나에서 사용합니다.');
     if(shared){L.push('여러 기기의 기록을 중앙 저장소에 모으고 다른 기기에서도 반영되어야 합니다. localStorage만으로 공동 저장을 흉내 내지 마세요.',ACCESS[$('access').value], '접근 권한은 서버에서 확인하세요. 관리자 버튼 숨기기나 프론트엔드 비밀번호만으로 권한을 구현하지 마세요. 로그인 없이 사용하려는 조건과 개인별 접근 제한이 충돌하면 먼저 설명하고 필요한 선택을 질문해 주세요.');}
     else L.push(fmt==='gas'?'이번 버전은 개인용이며 구글 시트에 저장합니다. 다른 사용자에게 공유하지 않는 배포·접근 설정을 안내하세요.':fmt==='python'?'데이터 저장이 필요하면 로컬 파일을 사용합니다. 다른 기기와 자동 동기화하지 않습니다.':'데이터 저장이 필요하면 각 기기 브라우저의 localStorage를 사용합니다. 다른 기기와 자동 동기화하지 않습니다.');
     L.push('','## 기술 조건',FORMAT_TEXT[fmt]);
@@ -471,8 +492,8 @@ const state = {features:[], summary:null, questions:[], signature:''};
     else L.push('한국어 UI로, 스마트폰과 PC 모두에서 읽고 누르기 쉽게 반응형으로 만들어 주세요. 입력칸에는 이름을 붙이고 오류와 사용 방법을 쉬운 말로 안내해 주세요.');
     if($('tone').value.trim())L.push('디자인 느낌: '+$('tone').value.trim());
     L.push('','## 진행 방식','1. 요구사항이 충돌하거나 꼭 필요한 정보가 빠졌을 때만 최대 3개 질문해 주세요. 사용자가 선택하지 않은 기능은 임의로 추가하지 마세요.',
-      fmt==='single'?'2. HTML 파일 하나의 전체 코드를 생략 없이 주세요.':'2. 먼저 필요한 파일명과 폴더 구조를 알려 주고, 파일별 전체 코드를 생략 없이 주세요. 길면 파일 단위로 나눠 주세요.',
-      '3. 필요한 설치·저장·실행·배포 절차를 빠짐없이 단계별로 알려 주세요. 오류가 날 수 있는 설정에는 확인 방법도 붙여 주세요.',
+      fmt==='single'?'2. 다운로드 파일 제공 기능이 있다면 완성된 HTML 파일을 주세요. 없다면 <!DOCTYPE html>부터 </html>까지 전체 코드를 생략 없이 주세요. 앱 이름에 맞는 .html 파일명도 알려 주세요.':'2. 먼저 필요한 파일명과 폴더 구조를 알려 주고, 파일별 전체 코드를 생략 없이 주세요. 길면 파일 단위로 나눠 주세요.',
+      fmt==='single'?'3. HTML 파일 내려받기 → 내 PC 브라우저에서 열기 → 이메일·메신저·공유 폴더로 파일 전달하기 → 받은 사람이 내려받아 PC 브라우저로 열기 순서로 안내하세요. 이번 실습에 GitHub 가입·호스팅·배포를 요구하지 마세요. file:// 주소를 보내는 것은 공유가 아니라고 설명하세요. 휴대폰·태블릿에서는 HTML 파일 실행이 제한될 수 있어 PC에서 먼저 체험하도록 안내하세요.':'3. 필요한 설치·저장·실행·배포 절차를 빠짐없이 단계별로 알려 주세요. 오류가 날 수 있는 설정에는 확인 방법도 붙여 주세요.',
       '4. 아래 확인 항목으로 검증하는 방법을 설명해 주세요.',
       fmt==='single'?'5. 수정할 때 기존 기능을 유지하고 수정한 HTML 전체를 주세요.':'5. 수정할 때 기존 기능을 유지하고 변경한 파일명과 해당 파일의 전체 코드를 주세요.');
     L.push('','## 직접 확인할 항목',...checkItems(on,fmt,shared).map(x=>'- '+x));
@@ -481,20 +502,21 @@ const state = {features:[], summary:null, questions:[], signature:''};
   function checkItems(on,fmt,shared){
     const opening={single:'HTML 파일을 브라우저로 열었을 때 안내와 입력 화면이 보인다.',web:'안내된 폴더 구조로 실행했을 때 화면·스타일·버튼이 모두 동작한다.',gas:'배포한 웹앱 주소를 열고 시험 기록을 저장하면 연결한 시트에 반영된다.',python:'안내된 명령으로 실행했을 때 오류 없이 예제 입력을 처리한다.'};
     const items=[opening[fmt],...on.map(f=>f.test||`"${f.name}"에 정상 입력과 빈 입력을 각각 사용해 보고, 예상 결과 또는 오류 안내가 나타나는지 확인한다.`)];
+    if(fmt==='single')items.push('HTML 파일을 다른 사람에게 전달하고, 받은 사람이 내려받아 PC 브라우저에서 열어 핵심 기능을 사용할 수 있다.','인터넷 연결을 끊고 파일을 다시 열어도 핵심 기능이 작동한다.');
     if(shared)items.push('기기 A에서 저장한 시험 기록이 기기 B에서 다시 조회했을 때 반영된다.','관리자와 일반 사용자로 각각 접속해 허용된 기록만 조회·수정할 수 있는지 확인한다.');
     if(fmt!=='python')items.push('스마트폰 또는 좁은 창에서도 글씨와 버튼이 잘리지 않는다.');
     return items;
   }
   function renderChecklist(){const wrap=$('checklist');wrap.innerHTML='';if(!built)return;built.items.forEach((text,i)=>{const l=document.createElement('label');l.className='check';l.innerHTML=`<input type="checkbox" ${checks[i]?'checked':''}><span>${esc(text)}</span>`;l.classList.toggle('done',!!checks[i]);l.querySelector('input').addEventListener('change',e=>{checks[i]=e.target.checked;l.classList.toggle('done',e.target.checked);scheduleSave();});wrap.appendChild(l);});}
   function renderGuide(){
-    if(!built)return;const fmt=built.format;
+    if(!built)return;const fmt=built.format;$('htmlFilePanel').classList.toggle('hidden',fmt!=='single');
     const guides={
-      single:['AI가 준 HTML 코드를 메모장에 붙여 넣고 index.html로 저장하세요. 파일 형식은 모든 파일, 인코딩은 UTF-8로 선택하세요.','index.html을 브라우저로 열어 확인하세요. 기록을 저장했다면 새로고침 후에도 남는지 확인하세요.','인터넷에 공유하려면 GitHub 저장소의 배포 폴더에 index.html을 올리고 Pages 배포를 설정하세요. 주소 공유와 기록 동기화는 별개입니다.'],
+      single:['AI가 완성된 .html 파일을 주면 내려받으세요. 코드만 준다면 아래의 HTML 파일 만들기에 전체 코드를 붙여 넣고 내려받으세요.','내려받은 파일을 PC에서 더블클릭하거나 브라우저로 열어 버튼을 눌러 보세요. 코드가 글자로 보이면 파일 확장자가 .html인지 확인하세요.','완성된 .html 파일 자체를 이메일·메신저·공유 폴더로 전달하세요. 받은 분은 파일을 내려받아 PC 브라우저에서 열면 됩니다. 미리보기나 휴대폰에서는 실행이 제한될 수 있어요.','파일 공유는 인터넷 주소 배포나 기록 동기화가 아닙니다. 받은 분의 기록은 그분의 브라우저에 따로 남아요.'],
       web:['AI가 안내한 폴더를 만들고 각 코드 블록을 해당 파일명으로 저장하세요. 여러 파일을 하나의 HTML에 붙여 넣지 마세요.','AI가 안내한 실행 방법으로 열고 스타일과 버튼까지 확인하세요. 필요하면 안내된 로컬 서버를 실행하세요.','GitHub Pages에는 안내된 배포 파일을 폴더 구조 그대로 올리세요. 사이트 주소에서 이미지와 링크도 확인하세요.'],
       gas:['구글 스프레드시트를 만들고 AI가 안내한 시트 이름과 열 제목을 준비하세요.','Apps Script 편집기에 서버 코드와 HTML을 각각 지정된 파일로 넣고 시트 연결을 설정하세요.','웹앱으로 배포한 뒤 실행 계정과 접근 대상을 확인하세요. 실제 계정으로 조회·수정 권한을 시험하세요.','배포된 웹앱 주소에서 시험 기록을 저장하고 시트 반영을 확인하세요. 수정 후에는 배포 버전도 갱신하세요.'],
       python:['파이썬 실행 환경을 준비하고 AI가 안내한 이름의 .py 파일로 저장하세요. 필요한 패키지가 있다면 안내된 설치 명령을 실행하세요.','터미널에서 안내된 명령(예: python main.py)으로 실행하세요. .html로 저장하지 마세요.','샘플 입력과 결과를 확인하세요. 파이썬 프로그램은 GitHub Pages에서 직접 실행되지 않습니다.']};
     const common=['위 AI 링크 중 하나를 열어 복사한 제작 요청을 같은 대화창에 붙여 넣으세요. 질문이 나오면 필요한 선택을 답하세요.'];
-    const last=['수정 전에는 작동하는 파일을 복사해 보관하거나 GitHub에 변경 기록을 남겨 두세요. 문제가 생기면 해당 버전으로 돌아갈 수 있어요.','아래 항목을 직접 확인하고, 안 되는 부분은 행동·기대한 결과·실제 결과를 적어 같은 AI 대화에 요청하세요.'];
+    const last=['수정 전에는 작동하는 파일을 다른 이름으로 복사해 보관하세요. 문제가 생기면 해당 파일로 돌아갈 수 있어요.','아래 항목을 직접 확인하고, 안 되는 부분은 행동·기대한 결과·실제 결과를 적어 같은 AI 대화에 요청하세요.'];
     $('runGuide').innerHTML=[...common,...guides[fmt],...last].map(x=>`<li>${esc(x)}</li>`).join('');renderFollowups(fmt);
   }
   function renderFollowups(fmt){
@@ -505,7 +527,7 @@ const state = {features:[], summary:null, questions:[], signature:''};
   $('btnBuild').addEventListener('click',()=>{
     if(formatConflict()){updateFormat();return;}const on=checkedFeatures();if(!on.length){setStatus('status2','기능을 하나 이상 선택해 주세요.',true);return;}
     cancelAI(false);replacePrompt(buildPrompt(on));checks={};built={format:$('format').value,items:checkItems(on,$('format').value,$('dataScope').value==='shared')};
-    renderGuide();renderChecklist();$('refinePreview').classList.add('hidden');setStatus('status3','');go(3);
+    renderGuide();renderChecklist();$('refinePreview').classList.add('hidden');setStatus('status3','');$('copyFeedback').textContent='프롬프트가 준비됐어요. 전체 복사 버튼을 누르세요.';go(3);
   });
   $('btnUndo').addEventListener('click',()=>{if(!promptUndo)return;cancelAI(false);const current=$('prompt').value;$('prompt').value=promptUndo;promptUndo=current;$('refinePreview').classList.add('hidden');setStatus('status3','이전 프롬프트로 되돌렸어요. 실행 안내와 체크리스트는 마지막 기능 선택 기준이므로 변경된 내용도 확인해 주세요.');scheduleSave();});
   $('prompt').addEventListener('input',()=>{cancelAI(false);$('refinePreview').classList.add('hidden');scheduleSave();});
@@ -573,10 +595,23 @@ const state = {features:[], summary:null, questions:[], signature:''};
   async function copyText(text){
     if(!text.trim())return;let ok=false;try{await navigator.clipboard.writeText(text);ok=true;}catch{}
     if(!ok){const temp=document.createElement('textarea');temp.value=text;temp.style.cssText='position:fixed;top:0;left:-9999px';document.body.appendChild(temp);temp.select();try{ok=document.execCommand('copy');}catch{}temp.remove();}
-    if(ok){toast('복사했어요');return;}
+    if(ok){toast('복사했어요');return true;}
     $('manualCopy').value=text;$('copyDialog').showModal();$('manualCopy').focus();$('manualCopy').select();
+    return false;
   }
-  $('btnCopy').addEventListener('click',()=>copyText($('prompt').value));
+  async function copyPrompt(){const ok=await copyText($('prompt').value);$('copyFeedback').textContent=ok?'복사 완료! 아래에서 AI를 열고 입력창에 붙여 넣으세요. (Windows: Ctrl+V / Mac: ⌘V)':'자동 복사가 제한되어 직접 복사 창을 열었어요. 선택된 내용을 복사해 AI에 붙여 넣으세요.';}
+  $('btnCopy').addEventListener('click',copyPrompt);$('btnCopyBottom').addEventListener('click',copyPrompt);
+  $('btnSaveHtml').addEventListener('click',()=>{
+    let source=$('htmlSource').value.trim();
+    if(/^```(?:html)?\s*\n/i.test(source)&&/\n```\s*$/.test(source))source=source.replace(/^```(?:html)?\s*\n/i,'').replace(/\n```\s*$/,'').trim();
+    if(!/<!doctype\s+html\s*>/i.test(source)||!/<html(?:\s[^>]*)?>/i.test(source)||!/<\/html\s*>\s*$/i.test(source)||!/<body(?:\s[^>]*)?>/i.test(source)||!/<\/body\s*>/i.test(source)){
+      setStatus('htmlStatus','완성된 HTML 전체 코드가 필요해요. AI에게 “<!DOCTYPE html>부터 </html>까지 생략 없는 전체 HTML을 주세요”라고 요청한 뒤 붙여 넣으세요.',true);return;
+    }
+    const rawName=$('htmlFilename').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/^\.+/,'').slice(0,100)||'my-first-app';
+    const filename=/\.html$/i.test(rawName)?rawName:rawName+'.html';
+    const url=URL.createObjectURL(new Blob([source],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setStatus('htmlStatus',filename+' 다운로드를 요청했어요. 저장된 파일을 PC 브라우저로 열어 기능을 확인한 뒤 전달하세요. 코드의 동작까지 자동 검증한 것은 아닙니다.');
+  });
   $('btnDownload').addEventListener('click',()=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([$('prompt').value],{type:'text/plain;charset=utf-8'}));a.href=url;a.download=((state.summary?.title)||'내앱').replace(/[\\/:*?"<>|]/g,'-')+'-프롬프트.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $('btnDebug').addEventListener('click',()=>{const action=$('debugAction').value.trim(),expected=$('debugExpected').value.trim(),actual=$('debugActual').value.trim();if(!action||!actual){setStatus('status3','수정 요청에 하려던 행동과 실제 결과를 적어 주세요.',true);return;}copyText(`현재 앱을 수정해 주세요.\n- 하려던 행동: ${action}\n- 기대한 결과: ${expected||'설명한 기능이 정상적으로 작동하기'}\n- 실제 결과 또는 오류: ${actual}\n원인을 쉬운 말로 설명하고 기존 기능을 유지해 주세요. ${built?.format==='single'?'수정한 HTML 전체 코드를':'변경한 파일명과 해당 파일의 전체 코드를'} 보여 주세요. 수정 후 확인할 행동도 알려 주세요.`);});
 
@@ -591,7 +626,10 @@ const state = {features:[], summary:null, questions:[], signature:''};
     try{const raw=localStorage.getItem(DRAFT_KEY);if(!raw)return;const d=JSON.parse(raw);if(d.version!==2||!d.fields||!d.state)throw new Error('Invalid draft');
       const features=Array.isArray(d.state.features)&&!d.state.features.length?[]:normalizeFeatures(d.state.features);
       FIELD_IDS.forEach(id=>{const el=$(id),v=d.fields[id];if(typeof v!=='string')return;if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===v))return;el.value=v;});
+      const legacy=!('deliveryMode' in d.fields);if(legacy)$('deliveryMode').value='advanced';
+      if($('deliveryMode').value==='file'){$('format').value='single';$('dataScope').value='local';$('devices').value='many';}
       state.features=features;state.summary=normalizeSummary(d.state.summary);state.questions=normalizeQuestions(d.state.questions);state.signature=typeof d.state.signature==='string'?d.state.signature:'';
+      if(legacy&&state.signature===JSON.stringify(IDEA_IDS.filter(id=>id!=='deliveryMode').map(id=>$(id).value)))state.signature=signature();
       $('prompt').value=typeof d.prompt==='string'?d.prompt:'';promptUndo=typeof d.promptUndo==='string'?d.promptUndo:'';$('btnUndo').disabled=!promptUndo;
       built=d.built&&['single','web','gas','python'].includes(d.built.format)&&Array.isArray(d.built.items)&&d.built.items.every(x=>typeof x==='string')?{format:d.built.format,items:d.built.items.slice(0,40)}:null;
       checks=d.checks&&typeof d.checks==='object'?d.checks:{};renderFeatures();renderQuick();renderQA();updateStorage();renderGuide();renderChecklist();
@@ -602,11 +640,12 @@ const state = {features:[], summary:null, questions:[], signature:''};
   ['debugAction','debugExpected','debugActual'].forEach(id=>$(id).addEventListener('input',scheduleSave));
   window.addEventListener('pagehide',saveDraft);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveDraft();});
   $('btnReset').addEventListener('click',()=>{if(!confirm('현재 초안과 프롬프트를 지우고 새로 시작할까요? 필요한 프롬프트는 먼저 .txt로 저장해 주세요.'))return;
-    cancelAI(false);clearTimeout(saveTimer);FIELD_IDS.forEach(id=>{const el=$(id);el.value=el.tagName==='SELECT'?el.options[0].value:'';});state.features=[];state.summary=null;state.questions=[];state.signature='';promptUndo='';built=null;checks={};$('prompt').value='';$('apikey').value='';$('btnUndo').disabled=true;$('refinePreview').classList.add('hidden');updateBadge();['status1','status2','status3','connectionStatus'].forEach(id=>setStatus(id,''));updateStorage();renderFeatures();renderQuick();renderQA();go(1);saveDraft();
+    cancelAI(false);clearTimeout(saveTimer);FIELD_IDS.forEach(id=>{const el=$(id);el.value=el.tagName==='SELECT'?el.options[0].value:'';});$('devices').value='many';state.features=[];state.summary=null;state.questions=[];state.signature='';promptUndo='';built=null;checks={};$('prompt').value='';$('apikey').value='';$('htmlSource').value='';$('htmlFilename').value='my-first-app.html';$('btnUndo').disabled=true;$('refinePreview').classList.add('hidden');updateBadge();['status1','status2','status3','connectionStatus','htmlStatus'].forEach(id=>setStatus(id,''));updateStorage();renderFeatures();renderQuick();renderQA();go(1);saveDraft();
   });
-  updateStorage();restoreDraft();
+  $('devices').value='many';updateStorage();restoreDraft();
 
 })();
 </script>
 </body>
 </html>
+
